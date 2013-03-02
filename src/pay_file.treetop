@@ -1,0 +1,152 @@
+grammar PayFile
+
+  rule file
+    header:file_header bs:batch+ trailer:file_trailer
+    {
+      def batches
+        bs.elements
+      end
+    }
+  end
+
+  rule batch
+    batch_header ts:(transaction*) batch_trailer newline
+    <::DeftPayments::Batch>
+  end
+
+  rule file_header
+    "0" [0-9]8..8 [A-Z\s]+ [0-9]+ "DEFT PAYMENTS" newline
+  end
+
+  rule file_trailer
+    "9" [0-9]8..8 [A-Z\s\-]+ ([0-9]0..6) space ([0-9]0..6) space money space money eof
+  end
+
+  rule transaction
+    "2" account space date space payment:payment space ref:number newline
+    <::DeftPayments::Transaction>
+    {
+      def amount_string
+        payment.amount.text_value
+      end
+
+      def account_number
+        account.account_number
+      end
+    }
+  end
+
+  rule batch_header
+    "1" account
+  end
+
+  rule batch_trailer
+    "7" account space date space payment space ([0-9]0..6) space ([0-9]0..6) space money space money
+  end
+
+  rule account
+    bsb account_number account_name
+  end
+
+  rule account_name
+    [A-Z\s\-'\/]0..32
+  end
+
+  rule bsb
+    [0-9] 3..3 "-" [0-9] 3..3
+  end
+
+  rule account_number
+    [0-9] 9..9
+  end
+
+  rule date
+   year month day
+   {
+    def to_time
+      Time.new("#{year.text_value}-#{month.text_value}-#{day.text_value}")
+    end
+   }
+  end
+
+  rule year
+    [0-9] [0-9] [0-9] [0-9]
+  end
+
+  rule month
+    [0-9] [0-9]
+  end
+
+  rule day
+    [0-9] [0-9]
+  end
+
+  rule payment
+    amt:money payment_direction payment_type payment_description
+    {
+      def amount
+        amt
+      end
+
+      def type
+        case payment_direction.text_value
+        when "CR"
+          "Payment"
+        when "DR"
+          "Refund"
+        end
+      end
+
+      def source
+        case payment_type.text_value
+        when "BP"
+          "BPay"
+        when "DQ"
+          "Cheque"
+        when "DS"
+          "Cash"
+        when "IC"
+          "Credit Card"
+        when "BC"
+          "Error Correction"
+        end
+      end
+    }
+  end
+
+  rule money
+    [0-9]+ "." [0-9] [0-9]
+  end
+  
+  rule payment_direction
+    "CR" / "DR" / "  "
+  end
+
+  rule payment_type
+    "BP" / "DQ" / "DS" / "IC" / "SP" / "BC" / "  "
+  end
+
+  rule payment_description
+    "BPay Payment" / "Cheque Payment" / "Cash Payment" / "Internet Credit Card Payment" / "BPay Error Correction" / batch_reference
+  end
+
+  rule batch_reference
+    [0-9]6..6
+  end
+
+  rule number
+    [0-9]+
+  end
+
+  rule space
+    (" " / "\t")+
+  end
+
+  rule newline
+    "\r\n" / "\n"
+  end
+
+  rule eof
+    (newline / space)* !.
+  end
+end

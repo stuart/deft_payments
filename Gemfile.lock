@@ -1,0 +1,19 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    i18n (0.6.1)
+    json (1.7.5)
+    money (5.0.0)
+      i18n (~> 0.4)
+      json
+    polyglot (0.3.3)
+    treetop (1.4.12)
+      polyglot
+      polyglot (>= 0.3.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  money
+  treetop
