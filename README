@@ -1,0 +1,42 @@
+Ah! DEFT Processing. Happy times...
+
+This library actually does the bit that Admin currently does.
+It pulls a PAY file from Macquarie bank and parses it into
+individual transaction records.
+
+The parser is written using the TreeTop parser DSL.
+To regenerate the parser use ```rake treetop```
+
+The transaction class has been designed for compatability with cornucopia.
+A transaction is a node of the parser's output tree.
+
+DEFT PAY FILE FORMAT
+
+Once you understand TreeTop grammars, looking at pay_file.treetop should
+make the entire payfile format easy to understand.
+
+The pay file layout has rows laid out like this:
+
+FILE HEADER
+	BATCH HEADER
+		TRANSACTIONS
+		...
+	BATCH FOOTER
+	BATCH HEADER
+		TRANSACTIONS
+		...
+	BATCH FOOTER
+	...
+FILE FOOTER
+
+There is a single integer row identifier that tells the parser what type
+of row each one is, for example a TRANSACTION is identified by starting with 2.
+See the parser itself for details.
+
+Most of the columns are fixed width or delimited by whitespace, though not all, which adds some oddities to the parser.
+
+The parser has been tested on every pay file that we have ever receieved.
+
+TODO: Add TXN file download and parsing. Though, from looking at
+admin we do nothing more than download the TXN files and store them
+for posterity.
