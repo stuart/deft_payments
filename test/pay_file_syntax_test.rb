@@ -27,7 +27,7 @@ class PayFileSyntaxTest < MiniTest::Unit::TestCase
 
   def test_cheque_transaction
     assert_can_parse wrap_transaction("2184-446301912804EVERYDAY HERO - AGENCY ACCOUNT     20101130          500.00CRDQCheque Payment                          73341273")
-  end 
+  end
 
   def test_cash_transaction
     assert_can_parse wrap_transaction("2184-446301912804EVERYDAY HERO - AGENCY ACCOUNT     20101130           15.00CRDSCash Payment                            18378")
@@ -41,22 +41,22 @@ class PayFileSyntaxTest < MiniTest::Unit::TestCase
     assert_can_parse wrap_transaction("2184-446301912804EVERYDAY HERO - AGENCY ACCOUNT     20110131         2500.00DRBCBPay Error Correction                   61376162")
   end
 
-  # # This runs the parser against all historical DEFT data.
-  # def test_multiple_files
-  #   failed = []
-  #   Dir.glob(File.join(File.dirname(__FILE__),'fixtures/*.pay')).each do |pay_file_name|
-  #     pay_file = File.open(pay_file_name, 'r')
-  #     print pay_file_name
-  #     unless parser.parse(pay_file.read)
-  #       failed << pay_file_name
-  #       puts " - FAILED"
-  #     else
-  #       puts " - OK"
-  #     end
-  #     pay_file.close
-  #   end
-  #   assert_equal [], failed
-  # end
+  # This runs the parser against all historical DEFT data.
+  def test_multiple_files
+    # failed = []
+    # Dir.glob(File.join(File.dirname(__FILE__),'fixtures/*.pay')).each do |pay_file_name|
+    #   pay_file = File.open(pay_file_name, 'r')
+    #   print pay_file_name
+    #   unless parser.parse(pay_file.read)
+    #     failed << pay_file_name
+    #     puts " - FAILED"
+    #   else
+    #     puts " - OK"
+    #   end
+    #   pay_file.close
+    # end
+    # assert_equal [], failed
+  end
 
   def test_single_file
     file = File.open File.join(File.dirname(__FILE__),'fixtures/20110720.pay'), 'r'

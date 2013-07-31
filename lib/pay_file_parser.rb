@@ -26,6 +26,10 @@ module PayFile
     def batches
       bs.elements
     end
+
+    def transactions
+      batches.map{|batch| batch.transactions}.flatten
+    end
   end
 
   def _nt_file
@@ -96,6 +100,16 @@ module PayFile
     end
   end
 
+  module Batch1
+    def transactions
+      ts.elements
+    end
+
+    def reference
+      batch_trailer.batch_reference.text_value
+    end
+  end
+
   def _nt_batch
     start_index = index
     if node_cache[:batch].has_key?(index)
@@ -132,8 +146,9 @@ module PayFile
       end
     end
     if s0.last
-      r0 = instantiate_node(::DeftPayments::Batch,input, i0...index, s0)
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
       r0.extend(Batch0)
+      r0.extend(Batch1)
     else
       @index = i0
       r0 = nil
@@ -613,32 +628,44 @@ module PayFile
       elements[4]
     end
 
-    def payment
+    def amt
       elements[5]
     end
 
-    def space3
+    def payment_direction
       elements[6]
     end
 
-    def space4
+    def payment_type
+      elements[7]
+    end
+
+    def batch_reference
       elements[8]
     end
 
-    def space5
-      elements[10]
+    def space3
+      elements[9]
     end
 
-    def money1
+    def space4
       elements[11]
     end
 
+    def space5
+      elements[13]
+    end
+
+    def money1
+      elements[14]
+    end
+
     def space6
-      elements[12]
+      elements[15]
     end
 
     def money2
-      elements[13]
+      elements[16]
     end
   end
 
@@ -675,66 +702,78 @@ module PayFile
             r5 = _nt_space
             s0 << r5
             if r5
-              r6 = _nt_payment
+              r6 = _nt_money
               s0 << r6
               if r6
-                r7 = _nt_space
+                r7 = _nt_payment_direction
                 s0 << r7
                 if r7
-                  s8, i8 = [], index
-                  loop do
-                    if has_terminal?('\G[0-9]', true, index)
-                      r9 = true
-                      @index += 1
-                    else
-                      r9 = nil
-                    end
-                    if r9
-                      s8 << r9
-                    else
-                      break
-                    end
-                    if s8.size == 6
-                      break
-                    end
-                  end
-                  r8 = instantiate_node(SyntaxNode,input, i8...index, s8)
+                  r8 = _nt_payment_type
                   s0 << r8
                   if r8
-                    r10 = _nt_space
-                    s0 << r10
-                    if r10
-                      s11, i11 = [], index
-                      loop do
-                        if has_terminal?('\G[0-9]', true, index)
-                          r12 = true
-                          @index += 1
-                        else
-                          r12 = nil
+                    r9 = _nt_batch_reference
+                    s0 << r9
+                    if r9
+                      r10 = _nt_space
+                      s0 << r10
+                      if r10
+                        s11, i11 = [], index
+                        loop do
+                          if has_terminal?('\G[0-9]', true, index)
+                            r12 = true
+                            @index += 1
+                          else
+                            r12 = nil
+                          end
+                          if r12
+                            s11 << r12
+                          else
+                            break
+                          end
+                          if s11.size == 6
+                            break
+                          end
                         end
-                        if r12
-                          s11 << r12
-                        else
-                          break
-                        end
-                        if s11.size == 6
-                          break
-                        end
-                      end
-                      r11 = instantiate_node(SyntaxNode,input, i11...index, s11)
-                      s0 << r11
-                      if r11
-                        r13 = _nt_space
-                        s0 << r13
-                        if r13
-                          r14 = _nt_money
-                          s0 << r14
-                          if r14
-                            r15 = _nt_space
-                            s0 << r15
-                            if r15
-                              r16 = _nt_money
+                        r11 = instantiate_node(SyntaxNode,input, i11...index, s11)
+                        s0 << r11
+                        if r11
+                          r13 = _nt_space
+                          s0 << r13
+                          if r13
+                            s14, i14 = [], index
+                            loop do
+                              if has_terminal?('\G[0-9]', true, index)
+                                r15 = true
+                                @index += 1
+                              else
+                                r15 = nil
+                              end
+                              if r15
+                                s14 << r15
+                              else
+                                break
+                              end
+                              if s14.size == 6
+                                break
+                              end
+                            end
+                            r14 = instantiate_node(SyntaxNode,input, i14...index, s14)
+                            s0 << r14
+                            if r14
+                              r16 = _nt_space
                               s0 << r16
+                              if r16
+                                r17 = _nt_money
+                                s0 << r17
+                                if r17
+                                  r18 = _nt_space
+                                  s0 << r18
+                                  if r18
+                                    r19 = _nt_money
+                                    s0 << r19
+                                  end
+                                end
+                              end
                             end
                           end
                         end
@@ -1409,78 +1448,155 @@ module PayFile
     end
 
     i0 = index
-    if has_terminal?("BP", false, index)
+    if has_terminal?("BC", false, index)
       r1 = instantiate_node(SyntaxNode,input, index...(index + 2))
       @index += 2
     else
-      terminal_parse_failure("BP")
+      terminal_parse_failure("BC")
       r1 = nil
     end
     if r1
       r0 = r1
     else
-      if has_terminal?("DQ", false, index)
+      if has_terminal?("BP", false, index)
         r2 = instantiate_node(SyntaxNode,input, index...(index + 2))
         @index += 2
       else
-        terminal_parse_failure("DQ")
+        terminal_parse_failure("BP")
         r2 = nil
       end
       if r2
         r0 = r2
       else
-        if has_terminal?("DS", false, index)
+        if has_terminal?("BR", false, index)
           r3 = instantiate_node(SyntaxNode,input, index...(index + 2))
           @index += 2
         else
-          terminal_parse_failure("DS")
+          terminal_parse_failure("BR")
           r3 = nil
         end
         if r3
           r0 = r3
         else
-          if has_terminal?("IC", false, index)
+          if has_terminal?("DS", false, index)
             r4 = instantiate_node(SyntaxNode,input, index...(index + 2))
             @index += 2
           else
-            terminal_parse_failure("IC")
+            terminal_parse_failure("DS")
             r4 = nil
           end
           if r4
             r0 = r4
           else
-            if has_terminal?("SP", false, index)
+            if has_terminal?("DQ", false, index)
               r5 = instantiate_node(SyntaxNode,input, index...(index + 2))
               @index += 2
             else
-              terminal_parse_failure("SP")
+              terminal_parse_failure("DQ")
               r5 = nil
             end
             if r5
               r0 = r5
             else
-              if has_terminal?("BC", false, index)
+              if has_terminal?("DY", false, index)
                 r6 = instantiate_node(SyntaxNode,input, index...(index + 2))
                 @index += 2
               else
-                terminal_parse_failure("BC")
+                terminal_parse_failure("DY")
                 r6 = nil
               end
               if r6
                 r0 = r6
               else
-                if has_terminal?("  ", false, index)
+                if has_terminal?("IC", false, index)
                   r7 = instantiate_node(SyntaxNode,input, index...(index + 2))
                   @index += 2
                 else
-                  terminal_parse_failure("  ")
+                  terminal_parse_failure("IC")
                   r7 = nil
                 end
                 if r7
                   r0 = r7
                 else
-                  @index = i0
-                  r0 = nil
+                  if has_terminal?("ID", false, index)
+                    r8 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                    @index += 2
+                  else
+                    terminal_parse_failure("ID")
+                    r8 = nil
+                  end
+                  if r8
+                    r0 = r8
+                  else
+                    if has_terminal?("OC", false, index)
+                      r9 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                      @index += 2
+                    else
+                      terminal_parse_failure("OC")
+                      r9 = nil
+                    end
+                    if r9
+                      r0 = r9
+                    else
+                      if has_terminal?("OD", false, index)
+                        r10 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                        @index += 2
+                      else
+                        terminal_parse_failure("OD")
+                        r10 = nil
+                      end
+                      if r10
+                        r0 = r10
+                      else
+                        if has_terminal?("DM", false, index)
+                          r11 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                          @index += 2
+                        else
+                          terminal_parse_failure("DM")
+                          r11 = nil
+                        end
+                        if r11
+                          r0 = r11
+                        else
+                          if has_terminal?("DP", false, index)
+                            r12 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                            @index += 2
+                          else
+                            terminal_parse_failure("DP")
+                            r12 = nil
+                          end
+                          if r12
+                            r0 = r12
+                          else
+                            if has_terminal?("SP", false, index)
+                              r13 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                              @index += 2
+                            else
+                              terminal_parse_failure("SP")
+                              r13 = nil
+                            end
+                            if r13
+                              r0 = r13
+                            else
+                              if has_terminal?("  ", false, index)
+                                r14 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                                @index += 2
+                              else
+                                terminal_parse_failure("  ")
+                                r14 = nil
+                              end
+                              if r14
+                                r0 = r14
+                              else
+                                @index = i0
+                                r0 = nil
+                              end
+                            end
+                          end
+                        end
+                      end
+                    end
+                  end
                 end
               end
             end
@@ -1556,13 +1672,8 @@ module PayFile
             if r5
               r0 = r5
             else
-              r6 = _nt_batch_reference
-              if r6
-                r0 = r6
-              else
-                @index = i0
-                r0 = nil
-              end
+              @index = i0
+              r0 = nil
             end
           end
         end

@@ -1,3 +1,6 @@
+# This is a treetop grammar that gets parsed and moved to lib/pay_file_parser.rb
+# by the `rake treetop` command.
+#
 grammar PayFile
 
   rule file
@@ -6,12 +9,25 @@ grammar PayFile
       def batches
         bs.elements
       end
+
+      def transactions
+        batches.map{|batch| batch.transactions}.flatten
+      end
     }
+
   end
 
   rule batch
     batch_header ts:(transaction*) batch_trailer newline
-    <::DeftPayments::Batch>
+    {
+      def transactions
+        ts.elements
+      end
+
+      def reference
+        batch_trailer.batch_reference.text_value
+      end
+    }
   end
 
   rule file_header
@@ -20,6 +36,14 @@ grammar PayFile
 
   rule file_trailer
     "9" [0-9]8..8 [A-Z\s\-]+ ([0-9]0..6) space ([0-9]0..6) space money space money eof
+  end
+
+  rule batch_header
+    "1" account
+  end
+
+  rule batch_trailer
+    "7" account space date space amt:money payment_direction payment_type batch_reference space ([0-9]0..6) space ([0-9]0..6) space money space money
   end
 
   rule transaction
@@ -34,14 +58,6 @@ grammar PayFile
         account.account_number
       end
     }
-  end
-
-  rule batch_header
-    "1" account
-  end
-
-  rule batch_trailer
-    "7" account space date space payment space ([0-9]0..6) space ([0-9]0..6) space money space money
   end
 
   rule account
@@ -108,7 +124,7 @@ grammar PayFile
         when "IC"
           "Credit Card"
         when "BC"
-          "Error Correction"
+          "Bpay Error Correction"
         end
       end
     }
@@ -123,11 +139,11 @@ grammar PayFile
   end
 
   rule payment_type
-    "BP" / "DQ" / "DS" / "IC" / "SP" / "BC" / "  "
+    "BC" / "BP" / "BR" / "DS" / "DQ" / "DY" / "IC" / "ID" / "OC" / "OD" / "DM" / "DP" / "SP" / "  "
   end
 
-  rule payment_description
-    "BPay Payment" / "Cheque Payment" / "Cash Payment" / "Internet Credit Card Payment" / "BPay Error Correction" / batch_reference
+  rule  payment_description
+    "BPay Payment" / "Cheque Payment" / "Cash Payment" / "Internet Credit Card Payment" / "BPay Error Correction"
   end
 
   rule batch_reference

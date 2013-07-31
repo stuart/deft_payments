@@ -1,6 +1,5 @@
 module DeftPayments
-  class Transaction < Treetop::Runtime::SyntaxNode 
-
+  class Transaction < Treetop::Runtime::SyntaxNode
     def amount
       amount_string.to_money("AUD")
     end
@@ -22,7 +21,19 @@ module DeftPayments
     end
 
     def reference
+      "#{batch_reference}-#{account_number.text_value}-#{ref.text_value}"
+    end
+
+    def drn
       "#{account_number.text_value}#{ref.text_value}"
+    end
+
+    def batch_reference
+      batch.reference
+    end
+
+    def batch
+      parent.parent
     end
 
     def gateway
